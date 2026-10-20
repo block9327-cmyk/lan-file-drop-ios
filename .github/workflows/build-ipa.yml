@@ -1,0 +1,41 @@
+name: Build LAN File Drop IPA
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Build unsigned device app
+        run: |
+          xcodebuild \
+            -project LANFileDrop.xcodeproj \
+            -scheme LANFileDrop \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+      - name: Package IPA
+        run: |
+          mkdir -p dist/Payload
+          cp -R build/Build/Products/Release-iphoneos/LANFileDrop.app dist/Payload/
+          cd dist
+          zip -qry LANFileDrop.ipa Payload
+          unzip -t LANFileDrop.ipa
+          file Payload/LANFileDrop.app/LANFileDrop
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LANFileDrop-IPA
+          path: dist/LANFileDrop.ipa
+          if-no-files-found: error
