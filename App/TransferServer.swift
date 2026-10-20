@@ -13,6 +13,7 @@ final class TransferServer: ObservableObject {
     private let queue = DispatchQueue(label: "tw.codex.lanfiledrop.server")
     private var listener: NWListener?
     private var token = ""
+    private var sessionIdentifier = UUID()
     private let port: UInt16 = 8080
     private let maxUploadBytes: Int64 = 4 * 1024 * 1024 * 1024
 
@@ -23,7 +24,8 @@ final class TransferServer: ObservableObject {
             hasError = true
             return
         }
-        let newToken = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+        let newToken = String(UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased().prefix(12))
+        let newSessionIdentifier = sessionIdentifier
         do {
             let parameters = NWParameters.tcp
             parameters.allowLocalEndpointReuse = true
@@ -32,6 +34,7 @@ final class TransferServer: ObservableObject {
             newListener.stateUpdateHandler = { [weak self] state in
                 guard let self else { return }
                 DispatchQueue.main.async {
+                    guard self.sessionIdentifier == newSessionIdentifier else { return }
                     switch state {
                     case .ready:
                         self.isRunning = true
@@ -64,6 +67,7 @@ final class TransferServer: ObservableObject {
     }
 
     func stop() {
+        sessionIdentifier = UUID()
         listener?.cancel()
         listener = nil
         isRunning = false
@@ -141,7 +145,7 @@ final class TransferServer: ObservableObject {
             return
         }
         guard method == "POST", target.hasPrefix(basePath + "/upload?") else {
-            reply(connection, status: "404 Not Found", body: "Not found")
+            reply(connection, status: "404 Not Found", body: "網址已失效。請回到 iPhone App，確認正在接收，並輸入目前顯示的完整網址。")
             return
         }
         guard let components = URLComponents(string: "http://localhost\(target)"),
