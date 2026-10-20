@@ -1,0 +1,29 @@
+name: LANFileDrop
+options:
+  bundleIdPrefix: tw.codex
+  deploymentTarget:
+    iOS: "15.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+targets:
+  LANFileDrop:
+    type: application
+    platform: iOS
+    sources:
+      - App
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: tw.codex.lanfiledrop
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Manual
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: 電腦傳檔
+        UILaunchScreen: {}
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        NSLocalNetworkUsageDescription: 允許同一個區域網路的電腦傳送檔案到這部 iPhone。
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
